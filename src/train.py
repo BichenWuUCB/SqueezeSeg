@@ -1,0 +1,313 @@
+# Author: Bichen Wu (bichen@berkeley.edu) 08/25/2016
+
+"""Train"""
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+import cv2
+from datetime import datetime
+import os.path
+import sys
+import time
+
+import math
+import numpy as np
+from six.moves import xrange
+import tensorflow as tf
+import threading
+
+from config import *
+from imdb import kitti
+from utils.util import *
+from nets import *
+
+FLAGS = tf.app.flags.FLAGS
+
+tf.app.flags.DEFINE_string('dataset', 'KITTI',
+                           """Currently only support KITTI dataset.""")
+tf.app.flags.DEFINE_string('data_path', '', """Root directory of data""")
+tf.app.flags.DEFINE_string('image_set', 'train',
+                           """ Can be train, trainval, val, or test""")
+tf.app.flags.DEFINE_string('train_dir', '/tmp/bichen/logs/squeezeseg/train',
+                            """Directory where to write event logs """
+                            """and checkpoint.""")
+tf.app.flags.DEFINE_integer('max_steps', 1000000,
+                            """Maximum number of batches to run.""")
+tf.app.flags.DEFINE_string('net', 'squeezeSeg',
+                           """Neural net architecture. """)
+tf.app.flags.DEFINE_string('pretrained_model_path', '',
+                           """Path to the pretrained model.""")
+tf.app.flags.DEFINE_integer('summary_step', 50,
+                            """Number of steps to save summary.""")
+tf.app.flags.DEFINE_integer('checkpoint_step', 1000,
+                            """Number of steps to save summary.""")
+tf.app.flags.DEFINE_string('gpu', '0', """gpu id.""")
+
+def _visualize_seg(lidar_xyz, label_map, mc, one_hot=False, center_xyz=None):
+  def _draw_box(i, bbox, img, color):
+    # up
+    img[i, bbox[0], bbox[1]:bbox[3], :] = color
+    # down
+    img[i, bbox[2], bbox[1]:bbox[3], :] = color
+    # left
+    img[i, bbox[0]:bbox[2], bbox[1], :] = color
+    # right
+    img[i, bbox[0]:bbox[2], bbox[3], :] = color
+
+  if one_hot:
+    label_map = np.argmax(label_map, axis=-1)
+  out = np.zeros(
+      (label_map.shape[0], label_map.shape[1], label_map.shape[2], 3))
+
+  # plot labels
+  for l in range(1, mc.NUM_CLASS):
+    out[label_map==l, :] = mc.CLS_COLOR_MAP[l]
+
+  for i in range(label_map.shape[0]):
+    # cluster based on actual point position
+    bbox_per_scan, _ = cluster_point_cloud(
+        lidar_xyz[i, :, :, :], label_map[i, :, :], range(1, mc.NUM_CLASS),
+        radius=mc.DBSCAN_RADIUS, min_cluster_pts=mc.DBSCAN_MIN_PTS)
+    # plot boundaries
+    for bbox_per_cls in bbox_per_scan:
+      for bbox in bbox_per_cls:
+        _draw_box(i, bbox, out, [0.5, 0.5, 0])
+    if not center_xyz is None:
+      # cluster based on predicted center position
+      bbox_per_scan, _ = cluster_point_cloud(
+          center_xyz[i, :, :, :], label_map[i, :, :], range(1, mc.NUM_CLASS),
+          radius=mc.DBSCAN_RADIUS, min_cluster_pts=mc.DBSCAN_MIN_PTS)
+      # plot boundaries
+      for bbox_per_cls in bbox_per_scan:
+        for bbox in bbox_per_cls:
+          _draw_box(i, bbox, out, [0, 0.5, 0.5])
+
+  return out
+
+def _visualize_center(xyz, dxyz, gxyz, mask, mc):
+  out = []
+  for i in range(xyz.shape[0]):
+    img = np.zeros((mc.PLOT_Y_RANGE, mc.PLOT_X_RANGE, 3), dtype=np.uint8)
+    for j in range(xyz.shape[1]):
+      for k in range(xyz.shape[2]):
+        if mask[i, j, k, 0]:
+          y = int(mc.PLOT_Y_RANGE - xyz[i, j, k, 0]/mc.PLOT_RESOLUTION)
+          x = int(mc.PLOT_X_RANGE/2 - xyz[i, j, k, 1]/mc.PLOT_RESOLUTION)
+          dy = -int(dxyz[i, j, k, 0]/mc.PLOT_RESOLUTION)
+          dx = -int(dxyz[i, j, k, 1]/mc.PLOT_RESOLUTION)
+          gy = int(mc.PLOT_Y_RANGE - gxyz[i, j, k, 0]/mc.PLOT_RESOLUTION)
+          gx = int(mc.PLOT_X_RANGE/2 - gxyz[i, j, k, 1]/mc.PLOT_RESOLUTION)
+
+          # draw vector to delta xyz
+          cv2.arrowedLine(img, (x, y), (x+dx, y+dy), (128, 128, 128), 1)
+          # draw delta xyz
+          cv2.circle(img, (x+dx, y+dy), 1, (255, 255, 0), -1)
+          # draw lidar points
+          cv2.circle(img, (x, y), 1, (255, 0, 0), -1)
+          # draw ground truth centers
+          cv2.circle(img, (gx, gy), 2, (0, 255, 0), -1)
+
+    out.append(img)
+  return out
+
+def train():
+  """Train SqueezeSeg model"""
+  assert FLAGS.dataset == 'KITTI', \
+      'Currently only support KITTI dataset'
+
+  os.environ['CUDA_VISIBLE_DEVICES'] = FLAGS.gpu
+
+  with tf.Graph().as_default():
+
+    assert FLAGS.net == 'squeezeSeg', \
+        'Selected neural net architecture not supported: {}'.format(FLAGS.net)
+
+    if FLAGS.net == 'squeezeSeg':
+      mc = kitti_squeezeSeg_config()
+      mc.PRETRAINED_MODEL_PATH = FLAGS.pretrained_model_path
+      model = SqueezeSeg(mc)
+
+    imdb = kitti(FLAGS.image_set, FLAGS.data_path, mc)
+
+    # save model size, flops, activations by layers
+    with open(os.path.join(FLAGS.train_dir, 'model_metrics.txt'), 'w') as f:
+      f.write('Number of parameter by layer:\n')
+      count = 0
+      for c in model.model_size_counter:
+        f.write('\t{}: {}\n'.format(c[0], c[1]))
+        count += c[1]
+      f.write('\ttotal: {}\n'.format(count))
+
+      count = 0
+      f.write('\nActivation size by layer:\n')
+      for c in model.activation_counter:
+        f.write('\t{}: {}\n'.format(c[0], c[1]))
+        count += c[1]
+      f.write('\ttotal: {}\n'.format(count))
+
+      count = 0
+      f.write('\nNumber of flops by layer:\n')
+      for c in model.flop_counter:
+        f.write('\t{}: {}\n'.format(c[0], c[1]))
+        count += c[1]
+      f.write('\ttotal: {}\n'.format(count))
+    f.close()
+    print ('Model statistics saved to {}.'.format(
+      os.path.join(FLAGS.train_dir, 'model_metrics.txt')))
+
+    def enqueue(sess):
+      while True:
+        # read batch input
+        batch = imdb.read_batch()
+        lidar_per_batch, lidar_mask_per_batch, label_per_batch = batch[:3]
+        label_mask_per_batch, weight_per_batch, center_xyz_per_batch = batch[3:6]
+        # clusters_per_batch = batch[6]
+
+        feed_dict = {
+            model.ph_keep_prob: mc.KEEP_PROB,
+            model.ph_lidar_input: lidar_per_batch,
+            model.ph_lidar_mask: lidar_mask_per_batch,
+            model.ph_label: label_per_batch,
+            model.ph_label_mask: label_mask_per_batch,
+            model.ph_loss_weight: weight_per_batch,
+            model.ph_center_xyz: center_xyz_per_batch
+        }
+
+        sess.run(model.enqueue_op, feed_dict=feed_dict)
+
+    saver = tf.train.Saver(tf.all_variables())
+    summary_op = tf.summary.merge_all()
+    init = tf.initialize_all_variables()
+
+    sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
+    sess.run(init)
+    tf.train.start_queue_runners(sess=sess)
+
+    summary_writer = tf.summary.FileWriter(FLAGS.train_dir, sess.graph)
+
+    enq_threads = []
+    for _ in range(mc.NUM_ENQUEUE_THREAD):
+      eqth = threading.Thread(target=enqueue, args=[sess])
+      eqth.isDaemon()
+      eqth.start()
+      enq_threads.append(eqth)
+
+    coord = tf.train.Coordinator()
+    threads = tf.train.start_queue_runners(coord=coord, sess=sess)
+    run_options = tf.RunOptions(timeout_in_ms=60000)
+
+    for step in xrange(FLAGS.max_steps):
+      start_time = time.time()
+
+      if step % FLAGS.summary_step == 0:
+        op_list = [
+            model.lidar_input, model.lidar_mask, model.label, \
+            model.label_mask, model.center_xyz, \
+            model.train_op, model.loss, model.pred_cls, # model.pred_delta_xyz,
+            summary_op
+        ]
+        # lidar_per_batch, lidar_mask_per_batch, label_per_batch, \
+        #     label_mask_per_batch, center_xyz_per_batch, \
+        #     _, loss_value, pred_cls, pred_delta_xyz, \
+        #     summary_str = sess.run(op_list, options=run_options)
+
+        lidar_per_batch, lidar_mask_per_batch, label_per_batch, \
+            label_mask_per_batch, center_xyz_per_batch, \
+            _, loss_value, pred_cls, \
+            summary_str = sess.run(op_list, options=run_options)
+
+
+        lidar_xyz = lidar_per_batch[:6, :, :, :2] * mc.INPUT_STD[:, :, :2] \
+            + mc.INPUT_MEAN[:, :, :2]
+        # pred_center_xyz = lidar_xyz + pred_delta_xyz[:6, :, :, :2]
+
+        label_image = _visualize_seg(
+            lidar_xyz, label_per_batch[:6, :, :], mc)
+        # pred_image = _visualize_seg(
+        #     lidar_xyz, pred_cls[:6, :, :], mc, center_xyz=pred_center_xyz)
+        pred_image = _visualize_seg(
+            lidar_xyz, pred_cls[:6, :, :], mc)
+        # center_pos_img = _visualize_center(
+        #     lidar_xyz,
+        #     pred_delta_xyz[:6, :, :, :2],
+        #     center_xyz_per_batch[:6, :, :, :2],
+        #     label_mask_per_batch[:6, :, :, :],
+        #     mc
+        # )
+
+        # Run evaluation on the batch
+        ious, _, _, _ = evaluate_iou(
+            label_per_batch, pred_cls*np.squeeze(lidar_mask_per_batch),
+            mc.NUM_CLASS)
+
+        feed_dict = {}
+        # Assume that class-0 is the background class
+        for i in range(1, mc.NUM_CLASS):
+          feed_dict[model.iou_summary_placeholders[i]] = ious[i]
+
+        iou_summary_list = sess.run(model.iou_summary_ops[1:], feed_dict)
+
+        # Run visualization
+        # depth channel is with index 4
+        # viz_op_list = [model.show_label, model.show_depth_img, model.show_pred,
+        #                model.show_center_pos]
+        viz_op_list = [model.show_label, model.show_depth_img, model.show_pred]
+        viz_summary_list = sess.run(
+            viz_op_list, 
+            feed_dict={
+                model.depth_image_to_show: lidar_per_batch[:6, :, :, [3]],
+                model.label_to_show: label_image,
+                model.pred_image_to_show: pred_image,
+                # model.center_pos_img_to_show: center_pos_img
+            }
+        )
+
+        # Add summaries
+        summary_writer.add_summary(summary_str, step)
+
+        for sum_str in iou_summary_list:
+          summary_writer.add_summary(sum_str, step)
+
+        for viz_sum in viz_summary_list:
+          summary_writer.add_summary(viz_sum, step)
+
+        # force tensorflow to synchronise summaries
+        summary_writer.flush()
+
+        # print ('loss: {}'.format(loss_value))
+      else:
+        _, loss_value = sess.run(
+            [model.train_op, model.loss], options=run_options)
+
+      duration = time.time() - start_time
+
+      assert not np.isnan(loss_value), \
+          'Model diverged. Total loss: {}, conf_loss: {}, bbox_loss: {}, ' \
+          'class_loss: {}'.format(loss_value, conf_loss, bbox_loss, class_loss)
+
+      if step % 10 == 0:
+        num_images_per_step = mc.BATCH_SIZE
+        images_per_sec = num_images_per_step / duration
+        sec_per_batch = float(duration)
+        format_str = ('%s: step %d, loss = %.2f (%.1f images/sec; %.3f '
+                      'sec/batch)')
+        print (format_str % (datetime.now(), step, loss_value,
+                             images_per_sec, sec_per_batch))
+        sys.stdout.flush()
+
+      # Save the model checkpoint periodically.
+      if step % FLAGS.checkpoint_step == 0 or (step + 1) == FLAGS.max_steps:
+        checkpoint_path = os.path.join(FLAGS.train_dir, 'model.ckpt')
+        saver.save(sess, checkpoint_path, global_step=step)
+
+def main(argv=None):  # pylint: disable=unused-argument
+  if tf.gfile.Exists(FLAGS.train_dir):
+    tf.gfile.DeleteRecursively(FLAGS.train_dir)
+  tf.gfile.MakeDirs(FLAGS.train_dir)
+  train()
+
+
+if __name__ == '__main__':
+  tf.app.run()
