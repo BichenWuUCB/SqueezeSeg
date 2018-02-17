@@ -4,6 +4,7 @@ export GPUID=0
 export NET="squeezeSeg"
 export IMAGE_SET="train"
 export LOG_DIR="/tmp/bichen/logs/squeezeseg/"
+export STEPS=25000
 
 if [ $# -eq 0 ]
 then
@@ -14,6 +15,7 @@ then
   echo "-gpu                      gpu id"
   echo "-image_set                (train|val)"
   echo "-log_dir                  Where to save logs."
+  echo "-steps                    Number of training steps."
   exit 0
 fi
 
@@ -27,6 +29,7 @@ while test $# -gt 0; do
       echo "-gpu                      gpu id"
       echo "-image_set                (train|val)"
       echo "-log_dir                  Where to save logs."
+      echo "-steps                    Number of training steps."
       exit 0
       ;;
     -gpu)
@@ -41,6 +44,11 @@ while test $# -gt 0; do
       ;;
     -log_dir)
       export LOG_DIR="$2"
+      shift
+      shift
+      ;;
+    -steps)
+      export STEPS="$2"
       shift
       shift
       ;;
@@ -62,7 +70,7 @@ python ./src/train.py \
   --image_set=$IMAGE_SET \
   --train_dir="$logdir/train" \
   --net=$NET \
-  --max_steps=25000 \
+  --max_steps=$STEPS \
   --summary_step=100 \
   --checkpoint_step=1000 \
   --gpu=$GPUID
