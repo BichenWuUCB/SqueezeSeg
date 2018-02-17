@@ -18,8 +18,6 @@ Link to the paper: https://arxiv.org/abs/1710.07368. Link to the video introduct
         year={2017}
     }
 
-## 
-
 ## Installation:
 
 The instructions are tested on Ubuntu 16.04 with python 2.7 and tensorflow 1.0 with GPU support. 
@@ -30,7 +28,7 @@ The instructions are tested on Ubuntu 16.04 with python 2.7 and tensorflow 1.0 w
     We name the root directory as `$SQSG_ROOT`.
 
 - Setup virtual environment.
-    1. By default we use Python2.7. Go to `$SQSG_ROOT`, create the virtual environment
+    1. By default we use Python2.7. Create the virtual environment
         ```Shell
         virtualenv env
         ```
@@ -44,7 +42,6 @@ The instructions are tested on Ubuntu 16.04 with python 2.7 and tensorflow 1.0 w
     ```Shell
     pip install -r requirements.txt
     ```
-
 
 ## Demo:
 
