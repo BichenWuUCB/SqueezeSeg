@@ -61,7 +61,6 @@ def eval_once(
 
     _t = {
         'detect': Timer(),
-        'cluster': Timer(),
         'read': Timer(),
         'eval': Timer()
     }
@@ -85,10 +84,8 @@ def eval_once(
       offset = max((i+1)*mc.BATCH_SIZE - num_images, 0)
       
       _t['read'].tic()
-      lidar_per_batch, lidar_mask_per_batch, label_per_batch, _, _, \
-          center_xyz_per_batch, cluster_per_batch = imdb.read_batch(shuffle=False)
-      lidar_xy = lidar_per_batch[:, :, :, :2] * mc.INPUT_STD[:, :, :2] \
-          + mc.INPUT_MEAN[:, :, :2]
+      lidar_per_batch, lidar_mask_per_batch, label_per_batch, _ \
+          = imdb.read_batch(shuffle=False)
       _t['read'].toc()
 
       _t['detect'].tic()
@@ -101,15 +98,6 @@ def eval_once(
           }
       )
       _t['detect'].toc()
-
-      _t['cluster'].tic()
-      pr_cluster_per_batch = []
-      for b in range(mc.BATCH_SIZE):
-        _, cluster_per_scan = cluster_point_cloud(
-            lidar_xy[b, :], pred_cls[b, :], range(1, mc.NUM_CLASS),
-            radius=mc.DBSCAN_RADIUS, min_cluster_pts=mc.DBSCAN_MIN_PTS)
-        pr_cluster_per_batch.append(cluster_per_scan)
-      _t['cluster'].toc()
 
       _t['eval'].tic()
       # Evaluation
@@ -124,53 +112,28 @@ def eval_once(
       fn_sum += fns
       fp_sum += fps
 
-      iious, itps, ifps, ifns, otps, ofps, ofns = evaluate_instance_iou(
-          cluster_per_batch[:mc.BATCH_SIZE-offset],
-          pr_cluster_per_batch[:mc.BATCH_SIZE-offset],
-          mc.NUM_CLASS-1)
-
-      itp_sum[1:] += itps
-      ifn_sum[1:] += ifns
-      ifp_sum[1:] += ifps
-
-      otp_sum[1:] += otps
-      ofn_sum[1:] += ofns
-      ofp_sum[1:] += ofps
-
-
       _t['eval'].toc()
 
       print ('detect: {:d}/{:d} im_read: {:.3f}s '
-          'detect: {:.3f}s evaluation: {:.3f}s cluster: {:.3f}s'.format(
+          'detect: {:.3f}s evaluation: {:.3f}s'.format(
                 (i+1)*mc.BATCH_SIZE-offset, num_images,
                 _t['read'].average_time/mc.BATCH_SIZE,
                 _t['detect'].average_time/mc.BATCH_SIZE,
-                _t['eval'].average_time/mc.BATCH_SIZE,
-                _t['cluster'].average_time/mc.BATCH_SIZE))
+                _t['eval'].average_time/mc.BATCH_SIZE))
 
     ious = tp_sum.astype(np.float)/(tp_sum + fn_sum + fp_sum + mc.DENOM_EPSILON)
     pr = tp_sum.astype(np.float)/(tp_sum + fp_sum + mc.DENOM_EPSILON)
     re = tp_sum.astype(np.float)/(tp_sum + fn_sum + mc.DENOM_EPSILON)
 
-    i_ious = itp_sum.astype(np.float)/(itp_sum + ifn_sum + ifp_sum + mc.DENOM_EPSILON)
-    i_pr = itp_sum.astype(np.float)/(itp_sum + ifp_sum + mc.DENOM_EPSILON)
-    i_re = itp_sum.astype(np.float)/(itp_sum + ifn_sum + mc.DENOM_EPSILON)
-
-    o_ious = otp_sum.astype(np.float)/(otp_sum + ofn_sum + ofp_sum + mc.DENOM_EPSILON)
-    o_pr = otp_sum.astype(np.float)/(otp_sum + ofp_sum + mc.DENOM_EPSILON)
-    o_re = otp_sum.astype(np.float)/(otp_sum + ofn_sum + mc.DENOM_EPSILON)
-
     print ('Evaluation summary:')
     print ('  Timing:')
-    print ('    read: {:.3f}s detect: {:.3f}s cluster: {:.3f}s'.format(
+    print ('    read: {:.3f}s detect: {:.3f}s'.format(
         _t['read'].average_time/mc.BATCH_SIZE,
-        _t['detect'].average_time/mc.BATCH_SIZE,
-        _t['cluster'].average_time/mc.BATCH_SIZE
+        _t['detect'].average_time/mc.BATCH_SIZE
     ))
 
     eval_sum_feed_dict = {
         eval_summary_phs['Timing/detect']:_t['detect'].average_time/mc.BATCH_SIZE,
-        eval_summary_phs['Timing/cluster']:_t['cluster'].average_time/mc.BATCH_SIZE,
         eval_summary_phs['Timing/read']:_t['read'].average_time/mc.BATCH_SIZE,
     }
 
@@ -179,28 +142,12 @@ def eval_once(
       print ('    {}:'.format(mc.CLASSES[i]))
       print ('\tPixel-seg: P: {:.3f}, R: {:.3f}, IoU: {:.3f}'.format(
           pr[i], re[i], ious[i]))
-      print ('\tInst-seg: P: {:.3f}, R: {:.3f}, IoU: {:.3f}'.format(
-          i_pr[i], i_re[i], i_ious[i]))
-      print ('\tDet: P: {:.3f}, R: {:.3f}, IoU: {:.3f}'.format(
-          o_pr[i], o_re[i], o_ious[i]))
       eval_sum_feed_dict[
           eval_summary_phs['Pixel_seg_accuracy/'+mc.CLASSES[i]+'_iou']] = ious[i]
       eval_sum_feed_dict[
           eval_summary_phs['Pixel_seg_accuracy/'+mc.CLASSES[i]+'_precision']] = pr[i]
       eval_sum_feed_dict[
           eval_summary_phs['Pixel_seg_accuracy/'+mc.CLASSES[i]+'_recall']] = re[i]
-      eval_sum_feed_dict[
-          eval_summary_phs['Ins_seg_accuracy/'+mc.CLASSES[i]+'_iou']] = i_ious[i]
-      eval_sum_feed_dict[
-          eval_summary_phs['Ins_seg_accuracy/'+mc.CLASSES[i]+'_precision']] = i_pr[i]
-      eval_sum_feed_dict[
-          eval_summary_phs['Ins_seg_accuracy/'+mc.CLASSES[i]+'_recall']] = i_re[i]
-      eval_sum_feed_dict[
-          eval_summary_phs['Det_accuracy/'+mc.CLASSES[i]+'_iou']] = o_ious[i]
-      eval_sum_feed_dict[
-          eval_summary_phs['Det_accuracy/'+mc.CLASSES[i]+'_precision']] = o_pr[i]
-      eval_sum_feed_dict[
-          eval_summary_phs['Det_accuracy/'+mc.CLASSES[i]+'_recall']] = o_re[i]
 
     eval_summary_str = sess.run(eval_summary_ops, feed_dict=eval_sum_feed_dict)
     for sum_str in eval_summary_str:
@@ -229,21 +176,15 @@ def evaluate():
 
     eval_summary_ops = []
     eval_summary_phs = {}
+
     eval_summary_names = [
         'Timing/read', 
-        'Timing/cluster', 
         'Timing/detect',
     ]
     for i in range(1, mc.NUM_CLASS):
       eval_summary_names.append('Pixel_seg_accuracy/'+mc.CLASSES[i]+'_iou')
       eval_summary_names.append('Pixel_seg_accuracy/'+mc.CLASSES[i]+'_precision')
       eval_summary_names.append('Pixel_seg_accuracy/'+mc.CLASSES[i]+'_recall')
-      eval_summary_names.append('Ins_seg_accuracy/'+mc.CLASSES[i]+'_iou')
-      eval_summary_names.append('Ins_seg_accuracy/'+mc.CLASSES[i]+'_precision')
-      eval_summary_names.append('Ins_seg_accuracy/'+mc.CLASSES[i]+'_recall')
-      eval_summary_names.append('Det_accuracy/'+mc.CLASSES[i]+'_iou')
-      eval_summary_names.append('Det_accuracy/'+mc.CLASSES[i]+'_precision')
-      eval_summary_names.append('Det_accuracy/'+mc.CLASSES[i]+'_recall')
 
     for sm in eval_summary_names:
       ph = tf.placeholder(tf.float32)

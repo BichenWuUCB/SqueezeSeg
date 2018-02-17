@@ -62,6 +62,7 @@ python ./src/train.py \
   --image_set=$IMAGE_SET \
   --train_dir="$logdir/train" \
   --net=$NET \
+  --max_steps=25000 \
   --summary_step=100 \
-  --checkpoint_step=500 \
+  --checkpoint_step=1000 \
   --gpu=$GPUID

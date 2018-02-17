@@ -1,13 +1,13 @@
 #!/bin/bash
 
-export GPUID=1
+export GPUID=0
 export NET="squeezeSeg"
 export IMAGE_SET="val"
 export LOG_DIR=""
 
 if [ $# -eq 0 ]
 then
-  echo "Usage: ./scripts/train.sh [options]"
+  echo "Usage: ./scripts/eval.sh [options]"
   echo " "
   echo "options:"
   echo "-h, --help                show brief help"

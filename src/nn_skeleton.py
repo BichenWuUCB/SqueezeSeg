@@ -15,19 +15,6 @@ import numpy as np
 import tensorflow as tf
 
 
-def _add_loss_summaries(total_loss):
-  """Add summaries for losses
-  Generates loss summaries for visualizing the performance of the network.
-  Args:
-    total_loss: Total loss from loss().
-  """
-  losses = tf.get_collection('losses')
-
-  # Attach a scalar summary to all individual losses and the total loss; do the
-  # same for the averaged version of the losses.
-  for l in losses + [total_loss]:
-    tf.summary.scalar(l.op.name, l)
-
 def _variable_on_device(name, shape, initializer, trainable=True):
   """Helper to create a Variable.
 
@@ -79,7 +66,7 @@ class ModelSkeleton:
     self.ph_keep_prob = tf.placeholder(tf.float32, name='keep_prob')
     # projected lidar points on a 2D spherical surface
     self.ph_lidar_input = tf.placeholder(
-        tf.float32, [mc.BATCH_SIZE, mc.ZENITH_LEVEL, mc.AZIMUTH_LEVEL, 4],
+        tf.float32, [mc.BATCH_SIZE, mc.ZENITH_LEVEL, mc.AZIMUTH_LEVEL, 5],
         name='lidar_input'
     )
     # A tensor where an element is 1 if the corresponding cell contains an
@@ -91,53 +78,28 @@ class ModelSkeleton:
     self.ph_label = tf.placeholder(
         tf.int32, [mc.BATCH_SIZE, mc.ZENITH_LEVEL, mc.AZIMUTH_LEVEL],
         name='label')
-    # A tensor where an element is 1 if the corresponding cell contains a label
-    # that is not none.
-    self.ph_label_mask = tf.placeholder(
-        tf.float32, [mc.BATCH_SIZE, mc.ZENITH_LEVEL, mc.AZIMUTH_LEVEL, 1],
-        name='label_mask')
     # weighted loss for different classes
     self.ph_loss_weight = tf.placeholder(
         tf.float32, [mc.BATCH_SIZE, mc.ZENITH_LEVEL, mc.AZIMUTH_LEVEL],
         name='loss_weight')
-    # bounding box center coordinate for each object
-    self.ph_center_xyz = tf.placeholder(
-        tf.float32, [mc.BATCH_SIZE, mc.ZENITH_LEVEL, mc.AZIMUTH_LEVEL, 3],
-        name='center_xyz')
 
     # define a FIFOqueue for pre-fetching data
     self.q = tf.FIFOQueue(
         capacity=mc.QUEUE_CAPACITY,
-        dtypes=[tf.float32, tf.float32, tf.float32, tf.int32, tf.float32,
-                tf.float32, tf.float32],
+        dtypes=[tf.float32, tf.float32, tf.float32, tf.int32, tf.float32],
         shapes=[[],
-                [mc.BATCH_SIZE, mc.ZENITH_LEVEL, mc.AZIMUTH_LEVEL, 4],
+                [mc.BATCH_SIZE, mc.ZENITH_LEVEL, mc.AZIMUTH_LEVEL, 5],
                 [mc.BATCH_SIZE, mc.ZENITH_LEVEL, mc.AZIMUTH_LEVEL, 1],
                 [mc.BATCH_SIZE, mc.ZENITH_LEVEL, mc.AZIMUTH_LEVEL],
-                [mc.BATCH_SIZE, mc.ZENITH_LEVEL, mc.AZIMUTH_LEVEL, 1],
-                [mc.BATCH_SIZE, mc.ZENITH_LEVEL, mc.AZIMUTH_LEVEL],
-                [mc.BATCH_SIZE, mc.ZENITH_LEVEL, mc.AZIMUTH_LEVEL, 3]]
+                [mc.BATCH_SIZE, mc.ZENITH_LEVEL, mc.AZIMUTH_LEVEL]]
     )
     self.enqueue_op = self.q.enqueue(
         [self.ph_keep_prob, self.ph_lidar_input, self.ph_lidar_mask,
-          self.ph_label, self.ph_label_mask, self.ph_loss_weight,
-          self.ph_center_xyz]
+          self.ph_label, self.ph_loss_weight]
     )
 
     self.keep_prob, self.lidar_input, self.lidar_mask, self.label, \
-        self.label_mask, self.loss_weight, self.center_xyz = self.q.dequeue()
-
-    # lidar point coordinates
-    self.lidar_xyz = tf.identity(
-        self.lidar_input[:, :, :, :3] * mc.INPUT_STD[:, :, :3] \
-        + mc.INPUT_MEAN[:, :, :3],
-        name='lidar_xyz')
-
-    # vector from lidar_xyz to center_xyz
-    self.delta_xyz = tf.identity(
-        (self.center_xyz - self.lidar_xyz) * self.label_mask,
-        name='delta_xyz'
-    )
+        self.loss_weight = self.q.dequeue()
 
     # model parameters
     self.model_params = []
@@ -163,23 +125,8 @@ class ModelSkeleton:
           tf.nn.softmax(self.output_prob, dim=-1), self.lidar_mask,
           name='pred_prob')
       self.pred_cls = tf.argmax(self.prob, axis=3, name='pred_cls')
-      self.pred_label_mask = tf.reshape(
-          tf.to_float(self.pred_cls > 0),
-          [mc.BATCH_SIZE, mc.ZENITH_LEVEL, mc.AZIMUTH_LEVEL, 1],
-          name='pred_label_mask'
-      )
-
-      # self.pred_center_xyz = tf.identity(
-      #     (self.output_delta_xyz + self.lidar_xyz) \
-      #     * self.lidar_mask * self.pred_label_mask,
-      #     name='pred_center_xyz')
-
-      # self.pred_delta_xyz = tf.identity(
-      #     self.output_delta_xyz * self.lidar_mask * self.pred_label_mask,
-      #     name='pred_delta_xyz')
 
       # add summaries
-      # self._activation_summary(self.output_delta_xyz, 'output_delta_xyz')
       for cls_id, cls in enumerate(mc.CLASSES):
         self._activation_summary(self.prob[:, :, :, cls_id], 'prob_'+cls)
 
@@ -201,42 +148,13 @@ class ModelSkeleton:
       )
       tf.add_to_collection('losses', self.cls_loss)
 
-    # with tf.variable_scope('center_coord_regression') as scope:
-    #   self.center_coord_loss = tf.identity(
-    #       tf.reduce_sum(
-    #           ((self.output_delta_xyz - self.delta_xyz) \
-    #           * self.label_mask)**2) \
-    #       / tf.reduce_sum(self.label_mask) * mc.CENTER_REG_COEF,
-    #       name='center_reg_loss'
-    #   )
-    #   tf.add_to_collection('losses', self.center_coord_loss)
-
-    #   # penalize on angular error
-    #   def _dot_prod(a, b):
-    #     return tf.reduce_sum(a*b, axis=3, keep_dims=True)
-    #   self.center_coord_cosine_loss = tf.identity(
-    #       tf.reduce_sum(
-    #           (1 - (_dot_prod(self.output_delta_xyz, self.delta_xyz) \
-    #            / (mc.DENOM_EPSILON + tf.norm(self.output_delta_xyz,
-    #                                          axis=3, keep_dims=True)) \
-    #            / (mc.DENOM_EPSILON + tf.norm(self.delta_xyz,
-    #                                          axis=3, keep_dims=True)))
-    #           ) * self.label_mask
-    #       ) / tf.reduce_sum(self.label_mask) * mc.CENTER_COS_COEF,
-    #       name='center_cos_loss'
-    #   )
-    #   tf.add_to_collection('losses', self.center_coord_cosine_loss)
-
-    #   tf.summary.scalar(
-    #       'average_l1_distance_of_center_xyz',
-    #       tf.reduce_sum(
-    #           tf.abs(self.output_delta_xyz - self.delta_xyz) \
-    #           * self.label_mask
-    #       ) / tf.reduce_sum(self.label_mask)
-    #   )
-
     # add above losses as well as weight decay losses to form the total loss
     self.loss = tf.add_n(tf.get_collection('losses'), name='total_loss')
+
+    # add loss summaries
+    # _add_loss_summaries(self.loss)
+    tf.summary.scalar(self.cls_loss.op.name, self.cls_loss)
+    tf.summary.scalar(self.loss.op.name, self.loss)
 
   def _add_train_graph(self):
     """Define the training operation."""
@@ -251,8 +169,6 @@ class ModelSkeleton:
 
     tf.summary.scalar('learning_rate', lr)
 
-    _add_loss_summaries(self.loss)
-
     opt = tf.train.MomentumOptimizer(learning_rate=lr, momentum=mc.MOMENTUM)
     grads_vars = opt.compute_gradients(self.loss, tf.trainable_variables())
 
@@ -261,13 +177,6 @@ class ModelSkeleton:
         grads_vars[i] = (tf.clip_by_norm(grad, mc.MAX_GRAD_NORM), var)
 
     apply_gradient_op = opt.apply_gradients(grads_vars, global_step=self.global_step)
-
-    for var in tf.trainable_variables():
-        tf.summary.histogram(var.op.name, var)
-
-    for grad, var in grads_vars:
-      if grad is not None:
-        tf.summary.histogram(var.op.name + '/gradients', grad)
 
     with tf.control_dependencies([apply_gradient_op]):
       self.train_op = tf.no_op(name='train')
@@ -287,11 +196,6 @@ class ModelSkeleton:
         tf.float32, [None, mc.ZENITH_LEVEL, mc.AZIMUTH_LEVEL, 3],
         name='pred_image_to_show'
     )
-    # self.center_pos_img_to_show = tf.placeholder(
-    #     tf.float32, [None, mc.PLOT_Y_RANGE, mc.PLOT_X_RANGE, 3],
-    #     name='center_pos_img_to_show'
-    # )
-
     self.show_label = tf.summary.image('label_to_show',
         self.label_to_show, collections='image_summary',
         max_outputs=mc.BATCH_SIZE)
@@ -301,9 +205,6 @@ class ModelSkeleton:
     self.show_pred = tf.summary.image('pred_image_to_show',
         self.pred_image_to_show, collections='image_summary',
         max_outputs=mc.BATCH_SIZE)
-    # self.show_center_pos = tf.summary.image('center_pos_img_to_show',
-    #     self.center_pos_img_to_show, collections='image_summary',
-    #     max_outputs=mc.BATCH_SIZE)
 
   def _add_summary_ops(self):
     """Add extra summary operations."""
