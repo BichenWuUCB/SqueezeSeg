@@ -2,7 +2,11 @@
 
 By Bichen Wu, Alvin Wan, Xiangyu Yue, Kurt Keutzer (UC Berkeley)
 
-This repository contains a tensorflow implementation of SqueezeSeg, a convolutional neural network model for LiDAR segmentation. 
+This repository contains a tensorflow implementation of SqueezeSeg, a convolutional neural network model for LiDAR segmentation. A demonstration of SqueezeSeg can be found below:
+
+![alt text](https://github.com/BichenWuUCB/SqueezeSeg/raw/master/readme/pr_0005.gif)
+
+
 
 Link to the paper: https://arxiv.org/abs/1710.07368. 
 
