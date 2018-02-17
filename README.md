@@ -22,6 +22,30 @@ Link to the paper: https://arxiv.org/abs/1710.07368. Link to the video introduct
 
 ## Installation:
 
+The instructions are tested on Ubuntu 16.04 with python 2.7 and tensorflow 1.0 with GPU support. 
+- Clone the SqueezeSeg repository:
+    ```Shell
+    git clone https://github.com/BichenWuUCB/SqueezeSeg.git
+    ```
+    We name the root directory as `$SQSG_ROOT`.
+
+- Setup virtual environment.
+    1. By default we use Python2.7. Go to `$SQSG_ROOT`, create the virtual environment
+        ```Shell
+        virtualenv env
+        ```
+
+    2. Activate the virtual environment
+        ```Shell
+        source env/bin/activate
+        ```
+
+- Use pip to install required Python packages:
+    ```Shell
+    pip install -r requirements.txt
+    ```
+
+
 ## Demo:
 
 ## Training/Validation
