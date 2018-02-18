@@ -36,6 +36,9 @@ tf.app.flags.DEFINE_string(
         'out_dir', './data/samples_out/', """Directory to dump output.""")
 tf.app.flags.DEFINE_string('gpu', '0', """gpu id.""")
 
+def _normalize(x):
+  return (x - x.min())/(x.max() - x.min())
+
 def detect():
   """Detect LiDAR data."""
 
@@ -75,9 +78,18 @@ def detect():
         )
 
         # save the plot
-        label_image = Image.fromarray(
+        depth_map = Image.fromarray(
+            (255 * _normalize(lidar[:, :, 3])).astype(np.uint8))
+        label_map = Image.fromarray(
             (255 * visualize_seg(pred_cls, mc)[0]).astype(np.uint8))
-        label_image.save(
+
+        blend_map = Image.blend(
+            depth_map.convert('RGBA'),
+            label_map.convert('RGBA'),
+            alpha=0.4
+        )
+
+        blend_map.save(
             os.path.join(FLAGS.out_dir, 'plot_'+file_name+'.png'))
 
 
