@@ -80,7 +80,7 @@ The instructions are tested on Ubuntu 16.04 with python 2.7 and tensorflow 1.0 w
     ./scripts/eval.sh -gpu 1 -image_set val -log_dir ./log/
     ```
     
-- We can monitor the training process using tensorboard. The latest log directory is recorded in `$SQSG_ROOT/train_dir.txt`.
+- We can monitor the training process using tensorboard.
     ```Shell
     tensorboard --logdir=$SQSG_ROOT/log/
     ```
