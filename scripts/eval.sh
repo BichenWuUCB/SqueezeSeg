@@ -50,12 +50,7 @@ while test $# -gt 0; do
   esac
 done
 
-if [ -z "$LOG_DIR" ]
-then
-    read -r logdir < "./train_dir.txt"
-else
-    logdir="$LOG_DIR"
-fi
+logdir="$LOG_DIR"
 traindir="$logdir/train/"
 valdir="$logdir/eval_$IMAGE_SET"
 

@@ -58,10 +58,7 @@ while test $# -gt 0; do
   esac
 done
 
-now=$(date +"%F_%H-%M-%S")
-logdir="$LOG_DIR/$now/"
-echo "Command to run tensorboard: tensorboard --logdir=$logdir"
-sed -i "1i $logdir" train_dir.txt
+logdir="$LOG_DIR/"
 
 python ./src/train.py \
   --dataset=KITTI \
