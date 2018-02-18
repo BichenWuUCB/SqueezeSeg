@@ -47,6 +47,14 @@ The instructions are tested on Ubuntu 16.04 with python 2.7 and tensorflow 1.0 w
     ```
 
 ## Demo:
+- To run the demo script:
+  ```Shell
+  cd $SQSG_ROOT/
+  python ./src/demo.py
+  ```
+  If the installation is correct, the detector should write the detection results as well as 2D label maps to `$SQSG_ROOT/data/samples_out`. Here is an example of the output label map:
+  
+
 
 ## Training/Validation
 
