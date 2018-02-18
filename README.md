@@ -59,4 +59,30 @@ The instructions are tested on Ubuntu 16.04 with python 2.7 and tensorflow 1.0 w
 
 
 ## Training/Validation
+- First, download training and validation data from this [link](https://www.dropbox.com/s/pnzgcitvppmwfuf/lidar_2d.tgz?dl=0). Note that this dataset is converted from [KITTI](http://www.cvlibs.net/datasets/kitti/) raw dataset and is distrubited under the [Creative Commons Attribution-NonCommercial-ShareAlike 3.0 License](https://creativecommons.org/licenses/by-nc-sa/3.0/).
+    ```Shell
+    cd $SQSG_ROOT/data/
+    wget https://www.dropbox.com/s/pnzgcitvppmwfuf/lidar_2d.tgz
+    tar -xzvf lidar_2d.tgz
+    rm lidar_2d.tgz
+    ```
+
+- Now we can start training by
+    ```Shell
+    cd $SQSG_ROOT/
+    ./scripts/train.sh -gpu 0 -image_set train -log_dir ./log/
+    ```
+   Training logs and model checkpoints will be saved in the log directory.
+   
+- Optinally, we can launch evaluation script simutaneously
+    ```Shell
+    cd $SQSG_ROOT/
+    ./scripts/eval.sh -gpu 1 -image_set val -log_dir ./log/
+    ```
+- We can monitor the training process using tensorboard.  
+    ```Shell
+    tensorboard --logdir=$SQSG_ROOT/log/
+    ```
+    Tensorboard displays information such as training loss, evaluation accuracy, visualization of detection results in the training process, which are helpful for debugging and tunning models.
+
 
