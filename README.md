@@ -30,7 +30,7 @@ The instructions are tested on Ubuntu 16.04 with python 2.7 and tensorflow 1.0 w
     ```
     We name the root directory as `$SQSG_ROOT`.
 
-- Setup virtual environment.
+- Setup virtual environment:
     1. By default we use Python2.7. Create the virtual environment
         ```Shell
         virtualenv env
