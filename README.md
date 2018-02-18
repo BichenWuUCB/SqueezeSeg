@@ -77,7 +77,7 @@ The instructions are tested on Ubuntu 16.04 with python 2.7 and tensorflow 1.0 w
 - Optinally, we can launch evaluation script simutaneously
     ```Shell
     cd $SQSG_ROOT/
-    ./scripts/eval.sh -gpu 1 -image_set val -log_dir ./log/
+    ./scripts/eval.sh -gpu 1 -image_set val
     ```
 - We can monitor the training process using tensorboard.  
     ```Shell
