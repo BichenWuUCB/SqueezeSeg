@@ -74,11 +74,12 @@ The instructions are tested on Ubuntu 16.04 with python 2.7 and tensorflow 1.0 w
     ```
    Training logs and model checkpoints will be saved in the log directory.
    
-- Optinally, we can launch evaluation script simutaneously
+- We can launch evaluation script simutaneously with training
     ```Shell
     cd $SQSG_ROOT/
     ./scripts/eval.sh -gpu 1 -image_set val
     ```
+    By default, the evaluation will use the latest training log directory. However, we can specify a different log directory by with the flag `-log_dir`.
 - We can monitor the training process using tensorboard.  
     ```Shell
     tensorboard --logdir=$SQSG_ROOT/log/
