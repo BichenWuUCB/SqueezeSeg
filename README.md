@@ -80,9 +80,9 @@ The instructions are tested on Ubuntu 16.04 with python 2.7 and tensorflow 1.0 w
     ./scripts/eval.sh -gpu 1 -image_set val
     ```
     By default, the evaluation will use the latest training log directory. However, we can specify a different log directory by with the flag `-log_dir`.
-- We can monitor the training process using tensorboard.  
+- We can monitor the training process using tensorboard. The latest log directory is recorded in `$SQSG_ROOT/train_dir.txt`.
     ```Shell
-    tensorboard --logdir=$SQSG_ROOT/log/
+    tensorboard --logdir=$LOG_DIR
     ```
     Tensorboard displays information such as training loss, evaluation accuracy, visualization of detection results in the training process, which are helpful for debugging and tunning models, as shown below:
     ![alt text](https://github.com/BichenWuUCB/SqueezeSeg/raw/master/readme/Screen%20Shot%202018-02-17%20at%206.13.44%20PM.png)
