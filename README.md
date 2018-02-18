@@ -9,7 +9,7 @@ This repository contains a tensorflow implementation of SqueezeSeg, a convolutio
 </p>
 
 
-Link to the paper: https://arxiv.org/abs/1710.07368. Link to the video introduction:https://youtu.be/Xyn5Zd3lm6s. If you find this work useful for your research, please consider citing:
+Please refer to our video for a high level introduction of this work: https://youtu.be/Xyn5Zd3lm6s. For more details, please refer to our paper: https://arxiv.org/abs/1710.07368. If you find this work useful for your research, please consider citing:
 
     @article{wu2017squeezeseg,
         title={Squeezeseg: Convolutional neural nets with recurrent crf for real-time road-object segmentation from 3d lidar point cloud},
@@ -83,6 +83,8 @@ The instructions are tested on Ubuntu 16.04 with python 2.7 and tensorflow 1.0 w
     ```Shell
     tensorboard --logdir=$SQSG_ROOT/log/
     ```
-    Tensorboard displays information such as training loss, evaluation accuracy, visualization of detection results in the training process, which are helpful for debugging and tunning models.
+    Tensorboard displays information such as training loss, evaluation accuracy, visualization of detection results in the training process, which are helpful for debugging and tunning models, as shown below:
+    ![alt text](https://github.com/BichenWuUCB/SqueezeSeg/raw/master/readme/Screen%20Shot%202018-02-17%20at%206.13.44%20PM.png)
+    ![alt text](https://github.com/BichenWuUCB/SqueezeSeg/raw/master/readme/Screen%20Shot%202018-02-17%20at%206.14.05%20PM.png)
 
 
