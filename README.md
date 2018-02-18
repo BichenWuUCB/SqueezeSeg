@@ -19,7 +19,7 @@ Please refer to our video for a high level introduction of this work: https://yo
     }
 
 ## License
-SqueezeSeg is released under the BSD license (See LICENSE for details). The dataset used for training, evaluation, and demostration of SqueezeSeg is modified from [KITTI](http://www.cvlibs.net/datasets/kitti/) raw dataset. For your convenience, we provide links to download the modified dataset, which is distrubited under the [Creative Commons Attribution-NonCommercial-ShareAlike 3.0 License](https://creativecommons.org/licenses/by-nc-sa/3.0/).
+**SqueezeSeg** is released under the BSD license (See [LICENSE](https://github.com/BichenWuUCB/SqueezeSeg/blob/master/LICENSE) for details). The **dataset** used for training, evaluation, and demostration of SqueezeSeg is modified from [KITTI](http://www.cvlibs.net/datasets/kitti/) raw dataset. For your convenience, we provide links to download the converted dataset, which is distrubited under the [Creative Commons Attribution-NonCommercial-ShareAlike 3.0 License](https://creativecommons.org/licenses/by-nc-sa/3.0/).
 
 ## Installation:
 
