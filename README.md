@@ -54,8 +54,7 @@ The instructions are tested on Ubuntu 16.04 with python 2.7 and tensorflow 1.0 w
   ```
   If the installation is correct, the detector should write the detection results as well as 2D label maps to `$SQSG_ROOT/data/samples_out`. Here are some examples of the output label map overlaped with the projected LiDAR signal:
   <p align="center">
-    <img src="https://github.com/BichenWuUCB/SqueezeSeg/raw/master/readme/plot_2011_09_26_0001_0000000010.png" width="600" />
-    <img src="https://github.com/BichenWuUCB/SqueezeSeg/raw/master/readme/plot_2011_09_26_0001_0000000050.png" width="600" />
+    <img src="https://github.com/BichenWuUCB/SqueezeSeg/raw/master/readme/0001.gif" width="600" />
   </p>
 
 
