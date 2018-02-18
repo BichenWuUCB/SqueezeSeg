@@ -45,18 +45,6 @@ tf.app.flags.DEFINE_integer('checkpoint_step', 1000,
                             """Number of steps to save summary.""")
 tf.app.flags.DEFINE_string('gpu', '0', """gpu id.""")
 
-def _visualize_seg(label_map, mc, one_hot=False, center_xyz=None):
-  if one_hot:
-    label_map = np.argmax(label_map, axis=-1)
-  out = np.zeros(
-      (label_map.shape[0], label_map.shape[1], label_map.shape[2], 3))
-
-  # plot labels
-  for l in range(1, mc.NUM_CLASS):
-    out[label_map==l, :] = mc.CLS_COLOR_MAP[l]
-
-  return out
-
 def train():
   """Train SqueezeSeg model"""
   assert FLAGS.dataset == 'KITTI', \
@@ -151,8 +139,8 @@ def train():
               _, loss_value, pred_cls, summary_str = sess.run(op_list,
                                                               options=run_options)
 
-          label_image = _visualize_seg(label_per_batch[:6, :, :], mc)
-          pred_image = _visualize_seg(pred_cls[:6, :, :], mc)
+          label_image = visualize_seg(label_per_batch[:6, :, :], mc)
+          pred_image = visualize_seg(pred_cls[:6, :, :], mc)
 
           # Run evaluation on the batch
           ious, _, _, _ = evaluate_iou(

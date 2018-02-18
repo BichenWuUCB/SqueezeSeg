@@ -47,37 +47,6 @@ class imdb(object):
         np.random.permutation(np.arange(len(self._image_idx)))]
     self._cur_idx = 0
 
-  def read_lidar_batch(self, shuffle=True):
-    """Only Read a batch of images without occupancy grid maps
-    Args:
-      shuffle: whether or not to shuffle the dataset
-    Returns:
-      images: length batch_size list of arrays [height, width, 3]
-    """
-    mc = self.mc
-    if shuffle:
-      if self._cur_idx + mc.BATCH_SIZE >= len(self._image_idx):
-        self._shuffle_image_idx()
-      batch_idx = self._perm_idx[self._cur_idx:self._cur_idx+mc.BATCH_SIZE]
-      self._cur_idx += mc.BATCH_SIZE
-    else:
-      if self._cur_idx + mc.BATCH_SIZE >= len(self._image_idx):
-        batch_idx = self._image_idx[self._cur_idx:] \
-            + self._image_idx[:self._cur_idx + mc.BATCH_SIZE-len(self._image_idx)]
-        self._cur_idx += mc.BATCH_SIZE - len(self._image_idx)
-      else:
-        batch_idx = self._image_idx[self._cur_idx:self._cur_idx+mc.BATCH_SIZE]
-        self._cur_idx += mc.BATCH_SIZE
-
-    lidars = []
-    for i in batch_idx:
-      lidar = np.load(self._load_2d_path_at(idx)).astype(
-          np.float32, copy=False)[:, :, :5]
-      lidar = (lidar - mc.INPUT_MEAN)/mc.INPUT_STD
-      lidars.append(lidar)
-
-    return lidars
-
   def read_batch(self, shuffle=True):
     """Read a batch of lidar data including labels. Data formated as numpy array
     of shape: height x width x {x, y, z, intensity, range, label}.

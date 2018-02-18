@@ -5,6 +5,17 @@
 import numpy as np
 import time
 
+def visualize_seg(label_map, mc, one_hot=False):
+  if one_hot:
+    label_map = np.argmax(label_map, axis=-1)
+  out = np.zeros(
+      (label_map.shape[0], label_map.shape[1], label_map.shape[2], 3))
+
+  for l in range(1, mc.NUM_CLASS):
+    out[label_map==l, :] = mc.CLS_COLOR_MAP[l]
+
+  return out
+
 def bgr_to_rgb(ims):
   """Convert a list of images from BGR format to RGB format."""
   out = []
