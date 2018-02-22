@@ -2,7 +2,6 @@
 
 """Image data base class for kitti"""
 
-import cv2
 import os 
 import numpy as np
 import subprocess

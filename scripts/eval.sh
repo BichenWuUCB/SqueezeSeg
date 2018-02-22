@@ -3,7 +3,7 @@
 export GPUID=0
 export NET="squeezeSeg"
 export IMAGE_SET="val"
-export LOG_DIR=""
+export LOG_DIR="./log/"
 
 if [ $# -eq 0 ]
 then
@@ -50,7 +50,7 @@ while test $# -gt 0; do
   esac
 done
 
-logdir="$LOG_DIR"
+logdir="$LOG_DIR/"
 traindir="$logdir/train/"
 valdir="$logdir/eval_$IMAGE_SET"
 

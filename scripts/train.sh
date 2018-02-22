@@ -3,7 +3,7 @@
 export GPUID=0
 export NET="squeezeSeg"
 export IMAGE_SET="train"
-export LOG_DIR="/tmp/bichen/logs/squeezeseg/"
+export LOG_DIR="./log/"
 export STEPS=25000
 
 if [ $# -eq 0 ]

@@ -6,8 +6,6 @@ import os
 import random
 import shutil
 
-from PIL import Image, ImageFont, ImageDraw
-import cv2
 import numpy as np
 
 from utils.util import *
