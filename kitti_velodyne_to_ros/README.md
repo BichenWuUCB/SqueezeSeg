@@ -6,9 +6,13 @@
 
 ### instrunction
 ---
-1. move this file to your `catkin_ws` folder and run `catkin_make`
-2. modify `.launch` file to your data paths.
-3. run commands below
+1. add save code to your `eval.py` like below 117-122   
+  1.1 then you can save `pred_~~~.npy` files after evaluation. It'd be prediction data
+![](https://github.com/tigerk0430/SqueezeSeg/blob/master/kitti_velodyne_to_ros/gif_and_pics/added_code.png)
+2. run `eval.sh` and save `pred_~~~.npy` files into specific path  
+3. move this `kitty_velodyne_to_ros` folder to your `catkin_ws` folder and run `catkin_make`
+4. modify `.launch` file to your data paths.
+5. run commands below
 
 
 
