@@ -1,10 +1,15 @@
 ### .npy file visualizer for ROS
 ---
+- basically It has two commands 
+- one is for `.bin` file from KITTI velodyne datasets, another is for `.npy` file from SqueezeSeg datasets
+  - commands are introduced below
 
+
+<br><br>
 ![](https://github.com/tigerk0430/SqueezeSeg/blob/master/kitti_velodyne_to_ros/gif_and_pics/squeezeseg_npy.gif)
 
 
-### instrunction
+### Instrunction
 ---
 1. add save code to your `eval.py` like below 117-122   
   1.1 then you can save `pred_~~~.npy` files after evaluation. It'd be prediction data
@@ -16,7 +21,7 @@
 
 
 
-### available commands
+### Available commands
 --- 
 (for `.bin` file from KITTI datasets)
 1. `rosrun kitti_velodyne_to_ros kitti_velodyne_to_ros_node`
