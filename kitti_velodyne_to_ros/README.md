@@ -11,7 +11,7 @@
 
 ### Instrunction
 ---
-1. add save code to your `eval.py` like below 117-122   
+1. add codes in your `eval.py` like below 117-122 lines
   1.1 then you can save `pred_~~~.npy` files after evaluation. It'd be prediction data
 ![](https://github.com/tigerk0430/SqueezeSeg/blob/master/kitti_velodyne_to_ros/gif_and_pics/added_code.png)
 2. run `eval.sh` and save `pred_~~~.npy` files into specific path  
