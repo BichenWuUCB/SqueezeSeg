@@ -9,6 +9,7 @@
 ![](https://github.com/tigerk0430/SqueezeSeg/blob/master/kitti_velodyne_to_ros/gif_and_pics/squeezeseg_npy.gif)
 
 
+<br><br>
 ### Instrunction
 ---
 1. add codes in your `eval.py` like below 117-122 lines
@@ -20,7 +21,7 @@
 5. run commands below
 
 
-
+<br><br>
 ### Available commands
 --- 
 (for `.bin` file from KITTI datasets)
