@@ -1,0 +1,8 @@
+<launch>
+  
+  <node pkg="squeezeseg_cpp_preprocessing" type="cpp_preprocessing" name="cpp_preprocessing" output="screen"/>
+
+  <node pkg="squeezeseg_cpp_preprocessing" type="online.py" name="online_segmentation" output="screen"  />
+
+</launch>
+
