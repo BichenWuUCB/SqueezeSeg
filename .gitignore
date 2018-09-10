@@ -1,2 +1,5 @@
 *pyc
 train_dir.txt
+data/lidar_2d.tgz
+*.npy
+.idea/*
