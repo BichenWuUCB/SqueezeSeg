@@ -1,9 +1,4 @@
 *pyc
 train_dir.txt
-.idea/deployment.xml
-.idea/libraries/R_User_Library.xml
-.idea/misc.xml
-.idea/SqueezeSeg.iml
-.idea/vcs.xml
-.idea/webServers.xml
-.idea/workspace.xml
+.idea/*
+
