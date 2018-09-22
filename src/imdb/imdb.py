@@ -14,6 +14,10 @@ from utils.util import *
 class imdb(object):
     """Image database."""
     
+    start_index = 1
+    total_count = 50000
+    train_count = 40000
+    
     def __init__(self, name, mc):
         self._name = name
         self._image_set = []
@@ -23,6 +27,8 @@ class imdb(object):
         
         # batch reader
         self._perm_idx = []
+        
+        self._index_list = [i+1 for i in np.arange(self.train_count)]
         self._cur_idx = 0
     
     @property
@@ -50,8 +56,12 @@ class imdb(object):
     def read_batch_new(self, shuffle=True):
         
         mc = self.mc
-
-        batch_idx = range(self._cur_idx, self._cur_idx + mc.BATCH_SIZE, 1)
+        
+        if self._cur_idx + mc.BATCH_SIZE >= self.train_count:
+            self._index_list = [self._index_list[i] for i in np.random.permutation(np.arange(len(self._index_list)))]
+            self._cur_idx = 1
+            
+        batch_idx = self._index_list[self._cur_idx: self._cur_idx + mc.BATCH_SIZE]
         self._cur_idx += mc.BATCH_SIZE
 
         # lidar input: batch * height * width * 5

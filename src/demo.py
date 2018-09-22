@@ -25,14 +25,14 @@ from nets import *
 FLAGS = tf.app.flags.FLAGS
 
 tf.app.flags.DEFINE_string(
-        'checkpoint', './data/SqueezeSeg/model.ckpt-23000',
+        'checkpoint', '../data/SqueezeSeg/model.ckpt-23000',
         """Path to the model parameter file.""")
 tf.app.flags.DEFINE_string(
-        'input_path', './data/samples/*',
+        'input_path', '../data/samples/*',
         """Input lidar scan to be detected. Can process glob input such as """
         """./data/samples/*.npy or single input.""")
 tf.app.flags.DEFINE_string(
-        'out_dir', './data/samples_out/', """Directory to dump output.""")
+        'out_dir', '../data/samples_out/', """Directory to dump output.""")
 tf.app.flags.DEFINE_string('gpu', '0', """gpu id.""")
 
 def _normalize(x):
