@@ -1,1 +1,2 @@
 from kitti_squeezeSeg_config import kitti_squeezeSeg_config
+from alibaba_squeezeSeg_config import alibaba_squeezeSeg_config
