@@ -52,6 +52,7 @@ def detect():
     saver = tf.train.Saver(model.model_params)
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
       saver.restore(sess, FLAGS.checkpoint)
+      
       for f in glob.iglob(FLAGS.input_path):
         lidar = np.load(f).astype(np.float32, copy=False)[:, :, :5]
         lidar_mask = np.reshape(

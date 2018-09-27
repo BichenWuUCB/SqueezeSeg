@@ -17,11 +17,11 @@ class kitti(imdb):
         
         # self._lidar_2d_path = os.path.join(self._data_root_path, 'lidar_2d')
         self._lidar_2d_path = os.path.join(self._data_root_path, 'npy')
-        
         self._gta_2d_path = os.path.join(self._data_root_path, 'gta')
         
+        
         # a list of string indices of images in the directory
-        self._image_idx = self._load_image_set_idx()
+        self._image_idx = self._load_new_image_set_idx()
         # a dict of image_idx -> [[cx, cy, w, h, cls_idx]]. x,y,w,h are not divided by
         # the image width and height
         
@@ -52,10 +52,24 @@ class kitti(imdb):
             'File does not exist: {}'.format(lidar_2d_path)
         return lidar_2d_path
     
-    # 新路径
+    
+    # 新路径, 面向alibaba数据的
     def _lidar_2d_new_path_at(self, idx):
         lidar_2d_path = self._lidar_2d_path + '/channelVELO_TOP_0000_%05d.npy' % int(idx)
         
         assert os.path.exists(lidar_2d_path), 'File does not exist: {}'.format(lidar_2d_path)
         
         return lidar_2d_path
+    
+    def _load_new_image_set_idx(self):
+        # path_pre = 'channelVELO_TOP_0000_'
+        idxs = [i for i in range(40001, 10000)]
+
+        return idxs
+        
+        
+        
+        
+        
+        
+        

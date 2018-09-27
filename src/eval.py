@@ -24,12 +24,13 @@ FLAGS = tf.app.flags.FLAGS
 
 tf.app.flags.DEFINE_string('dataset', 'KITTI',
                            """Currently support KITTI dataset.""")
-tf.app.flags.DEFINE_string('data_path', '', """Root directory of data""")
+tf.app.flags.DEFINE_string('data_path', '',
+                           """Root directory of data""")
 tf.app.flags.DEFINE_string('image_set', 'val',
                            """Can be train, trainval, val, or test""")
-tf.app.flags.DEFINE_string('eval_dir', '/tmp/bichen/logs/squeezeSeg/eval',
+tf.app.flags.DEFINE_string('eval_dir', '../scripts/log/eval',
                            """Directory where to write event logs """)
-tf.app.flags.DEFINE_string('checkpoint_path', '/tmp/bichen/logs/squeezeSeg/train',
+tf.app.flags.DEFINE_string('checkpoint_path', '../scripts/log/train',
                            """Path to the training checkpoint.""")
 tf.app.flags.DEFINE_integer('eval_interval_secs', 60 * 1,
                             """How often to check if new cpt is saved.""")
@@ -84,7 +85,7 @@ def eval_once(
             
             _t['read'].tic()
             lidar_per_batch, lidar_mask_per_batch, label_per_batch, _ \
-                = imdb.read_batch(shuffle=False)
+                = imdb.read_batch_new(shuffle=False)
             _t['read'].toc()
             
             _t['detect'].tic()
@@ -166,7 +167,8 @@ def evaluate():
             'Selected neural net architecture not supported: {}'.format(FLAGS.net)
         
         if FLAGS.net == 'squeezeSeg':
-            mc = kitti_squeezeSeg_config()
+            mc = alibaba_squeezeSeg_config()
+            
             mc.LOAD_PRETRAINED_MODEL = False
             mc.BATCH_SIZE = 1 # TODO(bichen): fix this hard-coded batch size.
             model = SqueezeSeg(mc)

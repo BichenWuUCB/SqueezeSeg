@@ -33,10 +33,10 @@ tf.app.flags.DEFINE_string('dataset', 'KITTI',
 tf.app.flags.DEFINE_string('data_path', '', """Root directory of data""")
 tf.app.flags.DEFINE_string('image_set', 'train',
                            """ Can be train, trainval, val, or test""")
-tf.app.flags.DEFINE_string('train_dir', '/tmp/bichen/logs/squeezeseg/train',
-                           """Directory where to write event logs """
+tf.app.flags.DEFINE_string('train_dir', '../scripts/log/checkpoint',
+                           """Directory where to write event logs"""
                            """and checkpoint.""")
-tf.app.flags.DEFINE_integer('max_steps', 1000000,
+tf.app.flags.DEFINE_integer('max_steps', 25000,
                             """Maximum number of batches to run.""")
 tf.app.flags.DEFINE_string('net', 'squeezeSeg',
                            """Neural net architecture. """)

@@ -57,13 +57,22 @@ class imdb(object):
         
         mc = self.mc
         
-        if self._cur_idx + mc.BATCH_SIZE >= self.train_count:
-            self._index_list = [self._index_list[i] for i in np.random.permutation(np.arange(len(self._index_list)))]
-            self._cur_idx = 1
-            
-        batch_idx = self._index_list[self._cur_idx: self._cur_idx + mc.BATCH_SIZE]
-        self._cur_idx += mc.BATCH_SIZE
+        if shuffle:
+            if self._cur_idx + mc.BATCH_SIZE >= self.train_count:
+                self._index_list = [self._index_list[i] for i in np.random.permutation(np.arange(len(self._index_list)))]
+                self._cur_idx = 1
+                
+            batch_idx = self._index_list[self._cur_idx: self._cur_idx + mc.BATCH_SIZE]
+            self._cur_idx += mc.BATCH_SIZE
+        else:
+            if self._cur_idx + mc.BATCH_SIZE >= self.total_count:
+                self._image_idx = [self._image_idx[i] for i in np.random.permutation(np.arange(self.total_count-self.train_count))]
+                self._cur_idx = train_count + 1
 
+            batch_idx = self._image_idx[self._cur_idx: self._cur_idx + mc.BATCH_SIZE]
+            self._cur_idx += mc.BATCH_SIZE
+            
+        
         # lidar input: batch * height * width * 5
         lidar_per_batch = []
         # lidar mask, 0 for missing data and 1 otherwise: batch * height * width * 1

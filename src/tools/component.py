@@ -7,7 +7,22 @@ import pandas as pd
 import cmath, math
 import time
 
-class TransformData(object):
+
+class OutputData(object):
+    
+    @property
+    def modelPath(self):
+        return self._modelPath
+    
+    @modelPath.setter
+    def modelPath(self, path):
+        self._modelPath = path
+        
+    
+    
+
+
+class InputData(object):
     
     # 数据根目录
     @property
@@ -327,7 +342,6 @@ class TransformData(object):
         return count
     
         
-'''
 if __name__ == '__main__':
     
     testpath = '../../data/training'
@@ -368,6 +382,5 @@ if __name__ == '__main__':
     # print testnp
     # testnp[1, 3, 3] = 9
     # print testnp
-    
     
 # '''

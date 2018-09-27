@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 # --encoding=utf8--
 
 import component as ct
@@ -14,10 +14,18 @@ def transform_npy(rootpath=""):
     os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
     os.environ['CUDA_VISIBLE_DEVICES'] = '5'
     
-    trantool = ct.TransformData()
+    trantool = ct.InputData()
     trantool.rootPath = rootpath
     
     ptsfiles = trantool.load_file_names()
+    
+    filesname_savepath = "../../scripts/log/filenames.txt"
+    with open(filesname_savepath, 'w') as f:
+        for i in range(0, len(ptsfiles)):
+            context = ptsfiles[i] + '\n'
+            f.write(context)
+        f.close()
+    
     
     idx = 0
     for file in ptsfiles:
