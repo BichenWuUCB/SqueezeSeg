@@ -28,7 +28,7 @@ tf.app.flags.DEFINE_string('data_path', '',
                            """Root directory of data""")
 tf.app.flags.DEFINE_string('image_set', 'val',
                            """Can be train, trainval, val, or test""")
-tf.app.flags.DEFINE_string('eval_dir', '../scripts/log/eval',
+tf.app.flags.DEFINE_string('eval_dir', '../scripts/log/eval_val',
                            """Directory where to write event logs """)
 tf.app.flags.DEFINE_string('checkpoint_path', '../scripts/log/train',
                            """Path to the training checkpoint.""")

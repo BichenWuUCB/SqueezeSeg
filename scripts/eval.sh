@@ -54,9 +54,9 @@ logdir="$LOG_DIR/"
 traindir="$logdir/train/"
 valdir="$logdir/eval_$IMAGE_SET"
 
-python ./src/eval.py \
+python ../src/eval.py \
   --dataset=KITTI \
-  --data_path=./data/ \
+  --data_path=../data/ \
   --image_set=$IMAGE_SET \
   --eval_dir="$valdir" \
   --checkpoint_path="$traindir" \

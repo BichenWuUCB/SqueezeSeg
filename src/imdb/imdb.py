@@ -14,9 +14,9 @@ from utils.util import *
 class imdb(object):
     """Image database."""
     
-    start_index = 1
-    total_count = 50000
-    train_count = 40000
+    start_index = 0
+    total_count = 40000
+    train_count = 35000
     
     def __init__(self, name, mc):
         self._name = name
@@ -29,6 +29,8 @@ class imdb(object):
         self._perm_idx = []
         
         self._index_list = [i+1 for i in np.arange(self.train_count)]
+        self._image_idx = [i+1 for i in range(self.train_count, self.total_count)]
+        
         self._cur_idx = 0
     
     @property
@@ -65,9 +67,9 @@ class imdb(object):
             batch_idx = self._index_list[self._cur_idx: self._cur_idx + mc.BATCH_SIZE]
             self._cur_idx += mc.BATCH_SIZE
         else:
-            if self._cur_idx + mc.BATCH_SIZE >= self.total_count:
+            if self._cur_idx + mc.BATCH_SIZE >= self.total_count-self.train_count:
                 self._image_idx = [self._image_idx[i] for i in np.random.permutation(np.arange(self.total_count-self.train_count))]
-                self._cur_idx = train_count + 1
+                self._cur_idx = 1
 
             batch_idx = self._image_idx[self._cur_idx: self._cur_idx + mc.BATCH_SIZE]
             self._cur_idx += mc.BATCH_SIZE
@@ -83,7 +85,8 @@ class imdb(object):
         weight_per_batch = []
 
         for idx in batch_idx:
-            record = np.load(self._lidar_2d_new_path_at(idx)).astype(np.float32, copy=False)
+            record = np.load(self._lidar_2d_new_path_at(idx))\
+                .astype(np.float32, copy=False)
 
             # [::-1] ----> [-1:-len()-1:-1] reverse
             if mc.DATA_AUGMENTATION:
@@ -93,9 +96,10 @@ class imdb(object):
                         record = record[:, ::-1, :]
                         record[:, :, 1] *= -1
 
-            lidar = record[:, :, :5] # x, y, z, intensity, depth?
+            lidar = record[:, :, :5] # x, y, z, intensity, range
             # zenith_level 64 azimuth_level 512
-            lidar_mask = np.reshape((lidar[:, :, 4] > 0), [mc.ZENITH_LEVEL, mc.AZIMUTH_LEVEL, 1])
+            lidar_mask = np.reshape((lidar[:, :, 4] > 0), \
+                                    [mc.ZENITH_LEVEL, mc.AZIMUTH_LEVEL, 1])
 
             #normalize
             lidar = (lidar - mc.INPUT_MEAN) / mc.INPUT_STD

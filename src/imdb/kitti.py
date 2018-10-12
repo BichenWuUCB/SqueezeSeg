@@ -10,18 +10,21 @@ from imdb import imdb
 
 
 class kitti(imdb):
+    
     def __init__(self, image_set, data_path, mc):
         imdb.__init__(self, 'kitti_'+image_set, mc)
         self._image_set = image_set
         self._data_root_path = data_path
         
         # self._lidar_2d_path = os.path.join(self._data_root_path, 'lidar_2d')
-        self._lidar_2d_path = os.path.join(self._data_root_path, 'npy')
-        self._gta_2d_path = os.path.join(self._data_root_path, 'gta')
+        
+        self._lidar_2d_path = os.path.join(self._data_root_path, 'npy180')
+        
+        # self._gta_2d_path = os.path.join(self._data_root_path, 'gta')
         
         
         # a list of string indices of images in the directory
-        self._image_idx = self._load_new_image_set_idx()
+        # self._image_idx = self._load_new_image_set_idx()
         # a dict of image_idx -> [[cx, cy, w, h, cls_idx]]. x,y,w,h are not divided by
         # the image width and height
         
@@ -63,7 +66,7 @@ class kitti(imdb):
     
     def _load_new_image_set_idx(self):
         # path_pre = 'channelVELO_TOP_0000_'
-        idxs = [i for i in range(40001, 10000)]
+        idxs = [i for i in range(self.train_count + 1, self.total_count + 1)]
 
         return idxs
         

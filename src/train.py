@@ -33,10 +33,10 @@ tf.app.flags.DEFINE_string('dataset', 'KITTI',
 tf.app.flags.DEFINE_string('data_path', '', """Root directory of data""")
 tf.app.flags.DEFINE_string('image_set', 'train',
                            """ Can be train, trainval, val, or test""")
-tf.app.flags.DEFINE_string('train_dir', '../scripts/log/checkpoint',
+tf.app.flags.DEFINE_string('train_dir', '../scripts/log/train',
                            """Directory where to write event logs"""
                            """and checkpoint.""")
-tf.app.flags.DEFINE_integer('max_steps', 25000,
+tf.app.flags.DEFINE_integer('max_steps', 250000,
                             """Maximum number of batches to run.""")
 tf.app.flags.DEFINE_string('net', 'squeezeSeg',
                            """Neural net architecture. """)
@@ -121,9 +121,9 @@ def train():
                     
                     
         
-        saver = tf.train.Saver(tf.all_variables())
         summary_op = tf.summary.merge_all()
-        init = tf.initialize_all_variables()
+        # init = tf.initialize_all_variables()
+        init = tf.global_variables_initializer()
         
         sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
         sess.run(init)
@@ -138,10 +138,25 @@ def train():
             enq_threads.append(eqth)
         
         run_options = tf.RunOptions(timeout_in_ms=60000)
+
+
+        # 恢复模型参数
+        initial_step = 0
+        ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
         
-        # 训练过程 25000次迭代
+        saver = tf.train.Saver(tf.global_variables())
+
+        if ckpt and ckpt.model_checkpoint_path:
+            # 从检查点恢复模型参数
+            saver.restore(sess, ckpt.model_checkpoint_path)
+            initial_step = int(ckpt.model_checkpoint_path.rsplit('-', 1)[1])
+
+        print(FLAGS.train_dir)
+        print("Current initial step is %d" % initial_step)
+        
+        # 训练过程 迭代
         try:
-            for step in xrange(FLAGS.max_steps):
+            for step in xrange(initial_step, initial_step+FLAGS.max_steps):
                 start_time = time.time()
                 
                 if step % FLAGS.summary_step == 0 or step == FLAGS.max_steps-1:
@@ -218,6 +233,8 @@ def train():
                 if step % FLAGS.checkpoint_step == 0 or step == FLAGS.max_steps-1:
                     checkpoint_path = os.path.join(FLAGS.train_dir, 'model.ckpt')
                     saver.save(sess, checkpoint_path, global_step=step)
+                    
+                    
         except Exception, e:
             coord.request_stop(e)
         finally:
@@ -227,15 +244,16 @@ def train():
 
 
 def main(argv=None):  # pylint: disable=unused-argument
-    if tf.gfile.Exists(FLAGS.train_dir):
-        tf.gfile.DeleteRecursively(FLAGS.train_dir)
-    tf.gfile.MakeDirs(FLAGS.train_dir)
-
-    path = "/home/mengweiliang/disk15/df314/training"
-    # transform.transform_npy(path)
     
+    if not tf.gfile.Exists(FLAGS.train_dir):
+        tf.gfile.MakeDirs(FLAGS.train_dir)
+        # tf.gfile.DeleteRecursively(FLAGS.train_dir)
+
     train()
 
 
 if __name__ == '__main__':
     tf.app.run()
+    
+    # path = "/home/mengweiliang/disk15/df314/training"
+    # transform.transform_npy(path)

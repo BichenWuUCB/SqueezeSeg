@@ -5,4 +5,10 @@ train_dir.txt
 data/lidar_2d.tgz
 *.npy
 .idea/*
+scripts/log/train/*
+scripts/log/answers/*
+src/tools/csv/*
+src/tools/image_csv/*
+data/answers/*
+data/answers.zip
 

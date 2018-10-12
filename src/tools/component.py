@@ -17,11 +17,11 @@ class OutputData(object):
     @modelPath.setter
     def modelPath(self, path):
         self._modelPath = path
+    
         
+ANGLE_PHI_MAX = 180.0
+ANGLE_PHI_MIN = 0.0
     
-    
-
-
 class InputData(object):
     
     # 数据根目录
@@ -36,7 +36,10 @@ class InputData(object):
     # 生成的npy数据保存目录
     @property
     def savePath(self):
-        return self.rootPath + '/npy/'
+        return self._savePath
+    @savePath.setter
+    def savePath(self, trail_path):
+        self._savePath = os.path.join(self.rootPath, trail_path)
 
     # 转换数据 并 生成npy文件
     def transformData(self, filepath=""):
@@ -51,18 +54,23 @@ class InputData(object):
     def load_file_names(self):
         assert self.rootPath != "", "root path is empty"
         rootname = self.rootPath + '/pts'
+
+        return self.load_subnames(rootname)
+    
+    
+    def load_subnames(self, rootpath):
         
         result = []
         ext = ['csv', 'npy']
-
-        files = self._filenames(rootname)
+    
+        files = self._filenames(rootpath)
         for file in files:
             if file.endswith(tuple(ext)):
                 result.append(file)
-
-        return self._filenames(rootname)
     
-
+        return result
+        
+    
 
     # 将csv转成npy文件
     # training下的三个目录中的文件名相同,分别提取出来合并成一个cvs文件
@@ -72,20 +80,31 @@ class InputData(object):
     # 而我们的每个csv有57888个点。
     
     # 返回一个(57888*, 6)
-    def cover_csv_to_nzero(self, filename, savecsv=False,
-                            ptsdirname='pts', intensitydirname='intensity', categorydirname='category'):
+    def cover_csv_to_np(self, filename, savecsv=False,
+                            ptsdirname='pts',
+                            intensitydirname='intensity',
+                            categorydirname='category'):
+        # print filename
         
         rootpath = self.rootPath
         ptsPath = self.rootPath + '/' + ptsdirname + '/' + filename
-        intensityPath = self.rootPath + '/' + intensitydirname + '/' + filename
-        categoryPath = self.rootPath + '/' + categorydirname + '/' + filename
         
-        npypath = self.savePath + '/' + filename
+        intensityPath = os.path.join(self.rootPath, intensitydirname,filename)
+        # self.rootPath + '/' + intensitydirname + '/' + filename
+        categoryPath = os.path.join(self.rootPath, categorydirname, filename)
+        # categoryPath = self.rootPath + '/' + categorydirname + '/' + filename
         
-        pts = pd.read_csv(ptsPath, header=0)
+        # npypath = os.path.join(self.savePath, filename)
+        # npypath = self.savePath + '/' + filename
+
         # pts.columns = ['x', 'y', 'z', 'i', 'c']
-        intensity = pd.read_csv(intensityPath)
-        category = pd.read_csv(categoryPath)
+        pts = pd.read_csv(ptsPath, header=None)
+        intensity = pd.read_csv(intensityPath, header=None)
+        
+        if os.path.exists(categoryPath):
+            category = pd.read_csv(categoryPath, header=None) # dtypes
+        else:
+            category = pd.DataFrame(np.zeros(np.shape(intensity), np.float32))
         
         # print '---- pts ----'
         # print pts.ix[1]
@@ -95,30 +114,23 @@ class InputData(object):
         #
         data = pd.DataFrame(contact)
         data.columns = ['x', 'y', 'z', 'i', 'c']
-        data.insert(3, 'r', 0)
-        
-        # data.loc[:, 'r'] = 0
-        # data.loc[:, ['i', 'r']] = data.loc[:, ['r', 'i']].values # 交换值
-        
-        # print data
-        # def range(x, y, z):
-        #     total = x ** 2 + y ** 2 + z ** 2
-        #     # print np.sqrt(total)
-        #     # np.sqrt(x ** 2 + y ** 2 + z ** 2)
-        #     return cmath.sqrt(total)
+        data.insert(4, 'r', 0)
         
         
         # print '----- contact -----'
         data['r'] = np.sqrt(data['x'] ** 2 + data['y'] ** 2 + data['z'] ** 2)
         
         # print data
-        nzero = data.loc[(data.x != 0) & (data.y != 0) & (data.z != 0)]
+        # nzero = data.loc[(data.x != 0) & (data.y != 0) & (data.z != 0)]
         
         # print nzero
         if savecsv:
-            nzero.to_csv('./contact.csv', index=False, header=False)
+            csv_path = os.path.join("./", "csv", filename)
+            print("csv file : %s" % csv_path)
+            if not os.path.exists(csv_path):
+                data.to_csv(csv_path, index=False, header=False)
     
-        return nzero
+        return data
     
     
     def get_degree(self, x, y, z):
@@ -133,15 +145,17 @@ class InputData(object):
         
         # 调整角度
         if y > 0:
-            phi = 90 + phi
-        else:
             phi = phi
+        else:
+            phi = phi + 180
+
+        # print("degree: %f, %f" % (theta, phi))
 
         # 防止越界
-        if phi > 135.0:
-            phi = 135.0
-        elif phi < 45:
-            phi = 45.0
+        if phi > ANGLE_PHI_MAX:
+            phi = ANGLE_PHI_MAX
+        elif phi < ANGLE_PHI_MIN:
+            phi = ANGLE_PHI_MIN
         
         return theta, phi
         
@@ -151,7 +165,7 @@ class InputData(object):
         # image x(height) * y(width) 2d
         # 向下取整
         x = int((theta - (-16)) / (32.0 / 64))
-        y = int((phi - 45.0) / (90.0 / 512))
+        y = int((phi - ANGLE_PHI_MIN) / ((ANGLE_PHI_MAX-ANGLE_PHI_MIN) / 512))
     
         # 严防越界
         x = (x > 63) and 63 or x
@@ -180,11 +194,15 @@ class InputData(object):
             return True
         else:
             return False
-
+    
+    
+    # 将所有数据转换成网格需要的格式
+    def generate_image_np360(self, values):
+        pass
     
         
     # 转换成npy格式 np
-    def generate_image_np(self, source, debug=False):
+    def generate_image_np(self, source, angle=90, debug=False):
         
         data = source.values
         # print type(data)
@@ -192,12 +210,14 @@ class InputData(object):
         x = [data[i][0] for i in range(len(data[:, 0]))]
         y = [data[i][1] for i in range(len(data[:, 0]))]
         z = [data[i][2] for i in range(len(data[:, 0]))]
+        
         intensity = [data[i][3] for i in range(len(data[:, 0]))]
         distance = [data[i][4] for i in range(len(data[:, 0]))]
         label = [data[i][5] for i in range(len(data[:, 0]))]
-    
-        thetaPt = [self.get_point_theta(data[i][0], data[i][1], data[i][2]) for i in range(len(data[:, 0]))] # x
-        phiPt = [self.get_point_phi(data[i][0], data[i][1], data[i][2]) for i in range(len(data[:, 0]))] # y
+        
+
+        thetaPt = [self.get_point_theta(data[i][0], data[i][1], data[i][2]) for i in range(len(data[:, 0]))]  # x
+        phiPt = [self.get_point_phi(data[i][0], data[i][1], data[i][2]) for i in range(len(data[:, 0]))]  # y
         
         # 生成数据 phi * theta * [x, y, z, i, r, c]
         image = np.zeros((64, 512, 6), dtype=np.float16)
@@ -224,10 +244,9 @@ class InputData(object):
             else:
                 if distance[i] < image[thetaPt[i], phiPt[i], 4]:
                     store_image(i)
-                
+        
      
         if debug:
-            
             # print theta, phi
             start = time.time()
             for i in range(len(x)):
@@ -341,6 +360,25 @@ class InputData(object):
                 count += 1
         return count
     
+import os, zipfile
+
+def zip_answers(source_dir, output_filename):
+    zipf = zipfile.ZipFile(output_filename, 'w')
+    pre_len = len(os.path.dirname(source_dir))
+    for parent, dirnames, filenames in os.walk(source_dir):
+        for filename in filenames:
+            pathfile = os.path.join(parent, filename)
+            arcname = pathfile[pre_len:].strip(os.path.sep)
+            zipf.write(pathfile, arcname)
+    zipf.close()
+
+
+if __name__ == '__main__':
+    source_dir = '/home/mengweiliang/lzh/SqueezeSeg/data/alibaba'
+    output_filename = 'answers.zip'
+    zip_answers(source_dir, output_filename)
+
+
         
 if __name__ == '__main__':
     
