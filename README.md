@@ -17,12 +17,12 @@ Please refer to our video for a high level introduction of this work: https://yo
         journal={arXiv preprint arXiv:1710.07368},
         year={2017}
     }
-    @article{DBLP:journals/corr/abs-1809-08495,
-        title     = {SqueezeSegV2: Improved Model Structure and Unsupervised Domain Adaptation
-                     for Road-Object Segmentation from a LiDAR Point Cloud},
-        author    = {Bichen Wu, Xuanyu Zhou, Sicheng Zhao, Xiangyu Yue and Kurt Keutzer},
-        journal   = {ICRA},
-        year      = {2019},
+    @inproceedings{wu2018squeezesegv2,
+        title={SqueezeSegV2: Improved Model Structure and Unsupervised Domain Adaptation
+               for Road-Object Segmentation from a LiDAR Point Cloud},
+        author={Wu, Bichen and Zhou, Xuanyu and Zhao, Sicheng and Yue, Xiangyu and Keutzer, Kurt},
+        booktitle={ICRA},
+        year={2019},
     }
 
 We recently open-sourced the code for SqueezeSegV2, a follow-up work to SqueezeSeg with significantly improved performance. For details, please check out: https://github.com/xuanyuzhou98/SqueezeSegV2
