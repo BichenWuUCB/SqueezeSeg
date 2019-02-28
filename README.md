@@ -17,6 +17,15 @@ Please refer to our video for a high level introduction of this work: https://yo
         journal={arXiv preprint arXiv:1710.07368},
         year={2017}
     }
+    @article{DBLP:journals/corr/abs-1809-08495,
+        title     = {SqueezeSegV2: Improved Model Structure and Unsupervised Domain Adaptation
+                     for Road-Object Segmentation from a LiDAR Point Cloud},
+        author    = {Bichen Wu, Xuanyu Zhou, Sicheng Zhao, Xiangyu Yue and Kurt Keutzer},
+        journal   = {ICRA},
+        year      = {2019},
+    }
+
+We recently open-sourced the code for SqueezeSegV2, a follow-up work to SqueezeSeg with significantly improved performance. For details, please check out: https://github.com/xuanyuzhou98/SqueezeSegV2
 
 ## License
 **SqueezeSeg** is released under the BSD license (See [LICENSE](https://github.com/BichenWuUCB/SqueezeSeg/blob/master/LICENSE) for details). The **dataset** used for training, evaluation, and demostration of SqueezeSeg is modified from [KITTI](http://www.cvlibs.net/datasets/kitti/) raw dataset. For your convenience, we provide links to download the converted dataset, which is distrubited under the [Creative Commons Attribution-NonCommercial-ShareAlike 3.0 License](https://creativecommons.org/licenses/by-nc-sa/3.0/).
