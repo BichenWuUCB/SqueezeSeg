@@ -18,8 +18,7 @@ Please refer to our video for a high level introduction of this work: https://yo
         year={2018}
     }
     @inproceedings{wu2018squeezesegv2,
-        title={SqueezeSegV2: Improved Model Structure and Unsupervised Domain Adaptation
-               for Road-Object Segmentation from a LiDAR Point Cloud},
+        title={SqueezeSegV2: Improved Model Structure and Unsupervised Domain Adaptation for Road-Object Segmentation from a LiDAR Point Cloud},
         author={Wu, Bichen and Zhou, Xuanyu and Zhao, Sicheng and Yue, Xiangyu and Keutzer, Kurt},
         booktitle={ICRA},
         year={2019},
