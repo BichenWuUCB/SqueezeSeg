@@ -14,8 +14,8 @@ Please refer to our video for a high level introduction of this work: https://yo
     @article{wu2017squeezeseg,
         title={Squeezeseg: Convolutional neural nets with recurrent crf for real-time road-object segmentation from 3d lidar point cloud},
         author={Wu, Bichen and Wan, Alvin and Yue, Xiangyu and Keutzer, Kurt},
-        journal={arXiv preprint arXiv:1710.07368},
-        year={2017}
+        journal={ICRA},
+        year={2018}
     }
     @inproceedings{wu2018squeezesegv2,
         title={SqueezeSegV2: Improved Model Structure and Unsupervised Domain Adaptation
@@ -23,6 +23,14 @@ Please refer to our video for a high level introduction of this work: https://yo
         author={Wu, Bichen and Zhou, Xuanyu and Zhao, Sicheng and Yue, Xiangyu and Keutzer, Kurt},
         booktitle={ICRA},
         year={2019},
+    }
+    @inproceedings{yue2018lidar,
+        title={A lidar point cloud generator: from a virtual world to autonomous driving},
+        author={Yue, Xiangyu and Wu, Bichen and Seshia, Sanjit A and Keutzer, Kurt and Sangiovanni-Vincentelli, Alberto L},
+        booktitle={ICMR},
+        pages={458--464},
+        year={2018},
+        organization={ACM}
     }
 
 We recently open-sourced the code for SqueezeSegV2, a follow-up work to SqueezeSeg with significantly improved performance. For details, please check out: https://github.com/xuanyuzhou98/SqueezeSegV2
