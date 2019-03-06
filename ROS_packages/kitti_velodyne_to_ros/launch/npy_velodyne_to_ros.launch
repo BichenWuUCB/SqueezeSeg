@@ -1,0 +1,13 @@
+<launch>
+  <!-- Path should End with '/' -->
+  <param name="npy_path" type="string" value="/media/dyros-vehicle/edward_6/datasets/lidar_2d/" />
+  <param name="npy_path_pred" type="string" value="/home/dyros-vehicle/gitrepo/ims_ml/SqueezeSeg/data/sample_out_ed/" />
+  <param name="npy_file_list" type="string" value="/home/dyros-vehicle/gitrepo/ims_ml/SqueezeSeg/data/ImageSet/val.txt" />
+
+
+  <node pkg="kitti_velodyne_to_ros" type="npy_velodyne_to_ros_node.py" name="npy_velodyne_to_ros" output="screen" />
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find kitti_velodyne_to_ros)/rviz/npy_velodyne_to_ros.rviz" />
+
+</launch>
+

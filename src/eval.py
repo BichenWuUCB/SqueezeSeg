@@ -98,6 +98,14 @@ def eval_once(
       )
       _t['detect'].toc()
 
+      # Uncomment this lines if you want to use visualize with Rviz. 
+      # see kitti_velodyne_to_ros in my gitrepo
+
+      # out_dir = "./data/sample_out_ed"
+      # if not tf.gfile.Exists(out_dir):
+      #     tf.gfile.MakeDirs(out_dir)
+      # np.save(os.path.join(out_dir, 'pred_' + imdb._image_idx[i] + '.npy'), pred_cls[0])
+
       _t['eval'].tic()
       # Evaluation
       iou, tps, fps, fns = evaluate_iou(

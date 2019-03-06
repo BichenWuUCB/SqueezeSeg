@@ -1,0 +1,31 @@
+<launch>
+  <!--
+      online segmentation using .npy & SqueezeSeg model
+      this script can
+                    1. read all .npy file from lidar_2d folder
+                    2. predict label from SqueezeSeg model using tensorflow
+                    3. publish to 'sqeeuze_seg/points' topic
+
+    strongly inspired from [https://github.com/Durant35/SqueezeSeg]
+    original code          [https://github.com/BichenWuUCB/SqueezeSeg]
+  -->
+
+  <!-- Path should End with '/' -->
+  <param name="npy_path" type="string" value="/media/dyros-vehicle/edward_6/datasets/lidar_2d/" />
+  <param name="npy_path_pred" type="string" value="/home/dyros-vehicle/gitrepo/ims_ml/SqueezeSeg/data/sample_out_ed/" />
+  <param name="npy_file_list" type="string" value="/home/dyros-vehicle/gitrepo/ims_ml/SqueezeSeg/data/ImageSet/val.txt" />
+  <param name="pub_topic" type="string" value="squeeze_seg/points" />
+
+  <!-- should be absolute path for checkpoint -->
+  <param name="checkpoint" type="string" value="/home/dyros-vehicle/gitrepo/ims/ROS/catkin_ws_kinetic/src/kitti_velodyne_to_ros/script/data/SqueezeSeg/model.ckpt-23000" />
+  <param name="gpu" type="string" value="0" />
+
+
+  
+  <node pkg="kitti_velodyne_to_ros" type="npy_tensorflow_to_ros_node.py" name="npy_tensorflow_to_ros" output="screen" />
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find kitti_velodyne_to_ros)/rviz/npy_velodyne_to_ros.rviz" />
+
+</launch>
+
+
