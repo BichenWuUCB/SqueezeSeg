@@ -1,0 +1,73 @@
+{
+	'LCN_WIDTH': 5,
+	'LEARNING_RATE': 0.01,
+	'INPUT_MEAN': array([
+		[
+			[10.88, 0.23, -1.04, 0.21, 12.12]
+		]
+	]),
+	'RANDOM_FLIPPING': True,
+	'NUM_SECTOR': 90,
+	'AZIMUTH_LEVEL': 512,
+	'RCRF_ITER': 3,
+	'CLS_COLOR_MAP': array([
+		[0., 0., 0.],
+		[0.12, 0.56, 0.37],
+		[0.66, 0.55, 0.71],
+		[0.58, 0.72, 0.88]
+	]),
+	'BI_FILTER_COEF': 0.1,
+	'INPUT_STD': array([
+		[
+			[11.47, 6.91, 0.86, 0.16, 12.32]
+		]
+	]),
+	'RGB_MEANS': array([
+		[
+			[123.68, 116.779, 103.939]
+		]
+	]),
+	'ANG_FILTER_COEF': 0.02,
+	'IMAGE_WIDTH': 224,
+	'BATCH_SIZE': 32,
+	'DATASET': 'KITTI',
+	'CLS_LOSS_WEIGHT': array([0.06666667, 1., 10., 10.]),
+	'DEBUG_MODE': False,
+	'ANG_THETA_A': array([0.9, 0.9, 0.6, 0.6]),
+	'MAX_GRAD_NORM': 1.0,
+	'DRIFT_X': 0,
+	'KEEP_PROB': 0.5,
+	'MOMENTUM': 0.9,
+	'QUEUE_CAPACITY': 80,
+	'ZENITH_LEVEL': 64,
+	'DATA_AUGMENTATION': True,
+	'BGR_MEANS': array([
+		[
+			[103.939, 116.779, 123.68]
+		]
+	]),
+	'PRETRAINED_MODEL_PATH': '',
+	'DENOM_EPSILON': 1e-12,
+	'CLASSES': ['unknown', 'car', 'pedestrian', 'cyclist'],
+	'BATCH_NORM_EPSILON': 1e-05,
+	'LR_DECAY_FACTOR': 0.5,
+	'CLS_LOSS_COEF': 15.0,
+	'NUM_CLASS': 4, 
+	'MAX_DIST': 100.0,
+	'BILATERAL_THETA_R': array([0.015, 0.015, 0.01, 0.01]),
+	'NUM_ENQUEUE_THREAD': 8,
+	'CLS_2_ID': {
+		'cyclist': 3,
+		'pedestrian': 2,
+		'car': 1,
+		'unknown': 0
+	},
+	'LOAD_PRETRAINED_MODEL': True,
+	'DECAY_STEPS': 10000,
+	'DRIFT_Y': 0,
+	'IMAGE_HEIGHT': 224,
+	'BILATERAL_THETA_A': array([0.9, 0.9, 0.6, 0.6]),
+	'LCN_HEIGHT': 3,
+	'WEIGHT_DECAY': 0.0001,
+	'NUM_LEVEL': 10
+}

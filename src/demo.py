@@ -25,14 +25,14 @@ from nets import *
 FLAGS = tf.app.flags.FLAGS
 
 tf.app.flags.DEFINE_string(
-        'checkpoint', './data/SqueezeSeg/model.ckpt-23000',
+        'checkpoint', '../data/SqueezeSeg/model.ckpt-23000',
         """Path to the model parameter file.""")
 tf.app.flags.DEFINE_string(
-        'input_path', './data/samples/*',
+        'input_path', '../data/samples/*',
         """Input lidar scan to be detected. Can process glob input such as """
         """./data/samples/*.npy or single input.""")
 tf.app.flags.DEFINE_string(
-        'out_dir', './data/samples_out/', """Directory to dump output.""")
+        'out_dir', '../data/samples_out/', """Directory to dump output.""")
 tf.app.flags.DEFINE_string('gpu', '0', """gpu id.""")
 
 def _normalize(x):
@@ -52,6 +52,7 @@ def detect():
     saver = tf.train.Saver(model.model_params)
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
       saver.restore(sess, FLAGS.checkpoint)
+      
       for f in glob.iglob(FLAGS.input_path):
         lidar = np.load(f).astype(np.float32, copy=False)[:, :, :5]
         lidar_mask = np.reshape(
