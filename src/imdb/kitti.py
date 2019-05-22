@@ -6,7 +6,10 @@ import os
 import numpy as np
 import subprocess
 
-from imdb import imdb
+try:
+  from imdb import imdb
+except:
+  from imdb.imdb import imdb
 
 class kitti(imdb):
   def __init__(self, image_set, data_path, mc):
